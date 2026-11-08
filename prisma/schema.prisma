@@ -1,0 +1,90 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id          String         @id @default(uuid()) @db.Uuid
+  ownerKey    String         @unique
+  name        String
+  description String
+  skills      ProfileSkill[]
+  experiences Experience[]
+  projects    Project[]
+  links       ProfileLink[]
+}
+
+model Skill {
+  id       String         @id @default(uuid()) @db.Uuid
+  name     String         @unique
+  profiles ProfileSkill[]
+}
+
+model ProfileSkill {
+  profileId String  @db.Uuid
+  skillId   String  @db.Uuid
+  sortOrder Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill     Skill   @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@id([profileId, skillId])
+  @@index([skillId, profileId])
+  @@index([profileId, sortOrder])
+}
+
+model Company {
+  id          String       @id @default(uuid()) @db.Uuid
+  inn         String       @unique
+  name        String
+  experiences Experience[]
+}
+
+model Position {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique
+  experiences Experience[]
+}
+
+model Experience {
+  id         String    @id @default(uuid()) @db.Uuid
+  profileId  String    @db.Uuid
+  companyId  String    @db.Uuid
+  positionId String    @db.Uuid
+  startedOn  DateTime  @db.Date
+  endedOn    DateTime? @db.Date
+  sortOrder  Int
+  profile    Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  position   Position  @relation(fields: [positionId], references: [id], onDelete: Restrict)
+
+  @@index([profileId, sortOrder])
+  @@index([companyId])
+  @@index([positionId])
+}
+
+model Project {
+  id        String  @id @default(uuid()) @db.Uuid
+  profileId String  @db.Uuid
+  name      String
+  url       String
+  sortOrder Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}
+
+model ProfileLink {
+  id        String  @id @default(uuid()) @db.Uuid
+  profileId String  @db.Uuid
+  label     String
+  url       String
+  sortOrder Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}

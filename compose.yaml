@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: catalog
+      POSTGRES_USER: catalog
+      POSTGRES_PASSWORD: catalog
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalog -d catalog"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  app:
+    build: .
+    environment:
+      PORT: 3030
+      DATABASE_URL: postgresql://catalog:catalog@postgres:5432/catalog?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3030:3030"
+    restart: on-failure
+
+volumes:
+  postgres-data:
